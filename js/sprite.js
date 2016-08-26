@@ -4,6 +4,18 @@ class Sprite {
     constructor(url, x, y, w, h) {
         this.img = new Image();
         this.img.src = url;
+        this.imageLoaded = true;
+        this.img.onload = function() {
+            this.imageLoaded = true;
+            
+            // Set width/height to image width/height if undefined
+            /*if (this.w == undefined) {
+                this.w = this.img.width;
+            }
+            if (this.h == undefined) {
+                this.h = this.img.height;
+            }*/
+        }
         this.angle = 0;
         this.x = x;
         this.y = y;
@@ -12,11 +24,33 @@ class Sprite {
     }
     
     draw(ctx) {
+        if (this.imageLoaded == false ||
+            this.w == undefined ||
+            this.h == undefined) {
+                return;
+        }
+        
         ctx.save();
         ctx.translate(this.x + this.w/2, this.y + this.h/2);
         ctx.rotate(this.angle);
         ctx.drawImage(this.img, -this.w/2, -this.h/2, this.w, this.h);
         ctx.restore();
+    }
+    
+    drawTile(ctx, tilesPerRow, padding, tileWidth, tileHeight, x, y, tileNum) {
+        var row = Math.floor((tileNum-1) / tilesPerRow);
+        var column = (tileNum-1) % tilesPerRow;
+        ctx.drawImage(
+            this.img,
+            column * tileHeight + column * padding,
+            row * tileWidth + row * padding,
+            tileWidth,
+            tileHeight,
+            x,
+            y,
+            tileWidth,
+            tileHeight
+        );
     }
     
     distance(obj) {

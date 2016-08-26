@@ -5,8 +5,11 @@ class Game {
         this.canvas;
         this.ctx;
         this.then;
+        this.background;
+        this.tileSets = [];
         this.player;
         this.enemies = [];
+        this.tiles;
         this.camera = {
             x: 0,
             y: 0
@@ -30,8 +33,14 @@ class Game {
         
         this.then = Date.now();
         
+        this.tileSets.push(new Sprite("sprites/platformer_tileset.png", 0, 0, 376, 104));
+        
+        this.background = new Sprite("sprites/background.png", 0, 0);
+        
+        // Add player
         this.player = new Player("sprites/mario.png", 40, 40, 64, 96, 3);
         
+        // Add enemies
         for (var i=0; i<20; i++) {
             this.enemies.push(new Enemy("sprites/koopa.png", 600, 40, 100, 100, Math.random()*2+0.5, this.player));
         }
@@ -48,16 +57,24 @@ class Game {
     }
     
     loadLevel(url) {
+        var tiles = [];
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4) {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
                 var json = xhttp.responseText;
                 var level = JSON.parse(json);
-                console.log(level);
+                var levelData = level.layers[0];
+                
+                // Copy data from array
+                for (var i=0; i<levelData.data.length; i++) {
+                    tiles.push(levelData.data[i]);
+                }
             }
         }
         xhttp.open("GET", url, true);
         xhttp.send();
+        
+        this.tiles = tiles;
     }
     
     main() {
@@ -93,25 +110,15 @@ class Game {
         // Translate to camera
         this.ctx.translate(this.camera.x, this.camera.y);
         
-        var tileSize = 256;
-        var counter = 0;
-        for (var i=0; i<this.world.width; i+=tileSize) {
-            for (var j=0; j<this.world.height; j+=tileSize) {
-                if (counter % 2 == 0) {
-                    this.ctx.fillStyle = "black";
-                } else {
-                    this.ctx.fillStyle = "gray";
-                }
-                
-                this.ctx.fillRect(i, j, tileSize, tileSize);
-                
-                counter++;
-            }
-            counter++;
-        }
+        // Draw background image
+        this.background.draw(this.ctx);
         
+        
+        // Draw Player
         this.player.draw(this.ctx);
         
+        this.tileSets[0].drawTile(this.ctx, 11, 32, 32, this.player.x, this.player.y, 30);
+        // Draw all enemies
         for (var i=0; i<this.enemies.length; i++) {
             this.enemies[i].draw(this.ctx);
         }
